@@ -1,50 +1,60 @@
 ############################################################
-# Dockerfile the demeteorizers a Meteor app, and runs
-# as a standard node app.
+# Builds a Meteor 0.9.x+ application Docker image
+#
 # See: http://docs.docker.io/
+#
+#  Important:  Best to run from a clean directory that hasn't had meteor run in it.
+#  Important:  packages/<pkg>/.npm and .build* should not exist
+#
 # Example usage:
-# cd appdir
-# docker build --tag="ongoworks/reaction:0.1.0" .   #build step
-# docker push ongoworks/reaction:0.1.0  #push to docker repo
-# docker run -p 127.0.0.1:8080:8080 ongoworks/reaction:0.1.0  #run
-############################################################
+#  cd appdir                                                 #in app dir
+#  docker build --tag="<org>/<app>" .                        #build step
+#  docker push <org>/<app>                                   #push to docker repo
+#  docker run -p 127.0.0.1:8080:8080 <org>/<app>             #run
+##############################################################
 
-FROM cmfatih/nodejs
+FROM google/debian:wheezy
 MAINTAINER Aaron Judd <aaron@ongoworks.com>
 
-#Install required packages first
-RUN apt-get install -qq -y curl git gcc make build-essential
+# install imagemagick (optional for cfs:graphicsmagick)
+RUN apt-get update -y && apt-get install --no-install-recommends -y -q chrpath libfreetype6 libfreetype6-dev libssl-dev libfontconfig1 imagemagick
+
+# install node + gcc
+RUN apt-get install --no-install-recommends -y -q curl python gcc make build-essential git ca-certificates nano
+RUN mkdir /nodejs && curl http://nodejs.org/dist/v0.10.33/node-v0.10.33-linux-x64.tar.gz | tar xvzf - -C /nodejs --strip-components=1
+ENV PATH $PATH:/nodejs/bin
+
+
+#install forever and phantomjs (optional for spiderable)
+RUN npm install --silent -g forever phantomjs
+
+# Install Meteor
 RUN curl https://install.meteor.com | /bin/sh
-RUN npm install --silent -g forever demeteorizer meteorite
+ADD . /meteor/src
+WORKDIR /meteor/src/
 
-# Add current dir+subs to meteorsrc
-ADD . ./meteorsrc
-WORKDIR /meteorsrc
-
-# Demeteorize meteorsrc to /var/www/app
-RUN mkdir -p /var/www/app && demeteorizer -n v0.10.26 -o /var/www/app
-
-# Set the working directory to be used for commands that are run, including the default CMD below
-WORKDIR /var/www/app
-
-RUN rm -rf /usr/local/meteor /usr/local/bin/meteor ~/.meteor
-RUN cd /var/www/app/ && npm uninstall --silent fibers && npm update
-
+# Bundle meteorsrc to /var/www/app
+RUN meteor build --directory /meteor
+RUN cd /meteor/bundle/programs/server/ && npm install
+WORKDIR /meteor/bundle
 
 #
-# Default ENV settings for meteor app
-# Required to run meteor!
+# Default Meteor ENV settings for meteor app
 # either change these or pass as --env in the docker run
 #
-ENV PORT 8080
+ENV PORT 8282
 ENV ROOT_URL "http://127.0.0.1"
 ENV MONGO_URL "mongodb://127.0.0.1:3001/meteor"
-#ENV MAIL_URL "smtp://user:password@mailhost:port/"
+ENV DISABLE_WEBSOCKETS "1"
 
 # Expose container port 8080 to the host (outside the container)
-EXPOSE 8080
+EXPOSE 8282
 
-WORKDIR /var/www/app
 RUN touch .foreverignore
-# Define default command that runs the node app on container port 8080
+
+# Define default command that runs the node app on container port 8282
 CMD forever -w ./main.js
+
+
+# Clean up APT when done.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /meteor/src

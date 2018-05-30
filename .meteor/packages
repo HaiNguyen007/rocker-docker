@@ -3,18 +3,39 @@
 # 'meteor add' and 'meteor remove' will edit this file for you,
 # but you can also edit it by hand.
 
+#meteor core packages
 standard-app-packages
-dockerode
-bootstrap-3
-redis
 accounts-password
-accounts-ui-bootstrap-3
-random
-iron-router
+accounts-ui
+underscore
 http
-collection2
-autoform
-collection-helpers
-moment
-numeral
-jquery-datatables
+random
+email
+less
+
+
+#ongoworks packages
+ongoworks:dockerode
+
+
+#community packages
+alanning:roles
+aslagle:reactive-table
+aldeed:collection2
+aldeed:autoform@4.2.2
+dburles:collection-helpers
+matb33:collection-hooks
+sergeyt:typeahead
+sacha:spin
+iron:router
+joshowens:accounts-entry
+ovcharik:alertify
+
+peppelg:on-login-logout
+meteorhacks:kadira
+tmeasday:publish-counts
+fortawesome:fontawesome
+mrt:redis
+mrt:numeral
+mrt:moment
+mrt:moment-timezone

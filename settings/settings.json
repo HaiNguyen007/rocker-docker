@@ -1,5 +1,29 @@
 {
-  "proxyPort": 80,
-  "proxyFallbackTarget": null,
-  "mode" : "production"
+  "kadira": {
+    "appId": "mB2iuFYbDqxtzxfer",
+    "appSecret": "f0bbd9c8-eb5f-4d1d-b2bb-4330270e8bec"
+  },
+  "docker": {
+    "protocol": "http",
+    "host": "127.0.0.1",
+    "port": 2375
+  },
+  "dockerSSL": {
+    "verify": true,
+    "path": null,
+    "ca": "ca.pem",
+    "cert": "cert.pem",
+    "key": "key.pem"
+  },
+  "redis": {
+    "host": "",
+    "port": ""
+  },
+  "hipache": {
+    "image": "ongoworks/hipache-npm:latest",
+    "name": "hipache-npm"
+  },
+  "public": {
+    "isDebug": true
+  }
 }
